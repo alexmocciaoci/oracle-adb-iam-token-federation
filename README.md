@@ -21,6 +21,7 @@ OCI IAM DB Token authentication is documented by Oracle at the feature level. Wh
 This repository documents 23 empirical test scenarios with root-cause analysis, Oracle Support SR evidence, and confirmed Bug / Enhancement Request IDs from Oracle Engineering.
 
 Full technical whitepaper: [`docs/whitepaper.pdf`](docs/whitepaper.pdf)
+Security architecture deep dive: [`docs/security-architecture.md`](docs/security-architecture.md)
 Complete test matrix with SR and Bug tracking: [`matrix/ADB_IAM_Token_Validation_Matrix.xlsx`](matrix/ADB_IAM_Token_Validation_Matrix.xlsx)
 
 ---
@@ -73,7 +74,8 @@ oracle-adb-iam-token-federation/
 │   └── ADB_IAM_Token_Validation_Matrix.xlsx
 │
 ├── docs/
-│   └── whitepaper.pdf
+│   ├── whitepaper.pdf
+│   └── security-architecture.md          # Security model: IAM policies, PoP, mTLS, MFA 26ai, M2M principals
 │
 └── README.md
 ```
@@ -164,6 +166,7 @@ Full SR numbers, Bug IDs, and engineering classification in `matrix/ADB_IAM_Toke
 ## References
 
 - [IAM Token Authentication — ADB-S](https://docs.oracle.com/en-us/iaas/autonomous-database/doc/iam-token-authentication.html)
+- [Security Architecture — IAM Policies, PoP, mTLS, MFA 26ai, M2M Principals](docs/security-architecture.md)
 - [python-oracledb Authentication Methods](https://python-oracledb.readthedocs.io/en/stable/user_guide/authentication_methods.html)
 - [python-oracledb Appendix B — Thin vs Thick Differences](https://python-oracledb.readthedocs.io/en/latest/user_guide/appendix_b.html)
 - [JDBC Client-Side Security — Token-Based Authentication](https://docs.oracle.com/en/database/oracle/oracle-database/21/jjdbc/client-side-security.html)
