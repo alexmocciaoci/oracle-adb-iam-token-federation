@@ -1,0 +1,96 @@
+# ==============================================================================
+# requirements.txt — oracle-adb-iam-token-federation / python/
+# ==============================================================================
+# Repository : https://github.com/alexmocciaoci/oracle-adb-iam-token-federation
+# Author     : Alessandro Moccia — Oracle Solution Architect | Oracle ACE Program
+#
+# INSTALL
+# -------
+#   pip install -r requirements.txt
+#
+# ORACLE INSTANT CLIENT — separate installation required for THICK mode
+# ---------------------------------------------------------------------
+# The Oracle Instant Client is a native C library (libclntsh.so / oci.dll)
+# that enables python-oracledb THICK mode. It is NOT installable via pip —
+# it must be downloaded and installed separately from Oracle.
+#
+# Download: https://www.oracle.com/database/technologies/instant-client/downloads.html
+# Minimum version for full IAM DB Token + PoP support: 23.x (recommended)
+# Minimum version for any IAM token support           : 19.14+ or 21.5+
+#
+# Platform-specific installation:
+#   Windows : extract ZIP to a directory (e.g. C:\oracle\instantclient_23_9)
+#             pass that path to oracledb.init_oracle_client(lib_dir=...)
+#   Linux   : extract to /opt/oracle/instantclient_23_9
+#             add to LD_LIBRARY_PATH or call ldconfig
+#             pass path to oracledb.init_oracle_client(lib_dir=...)
+#   macOS   : extract to ~/lib/instantclient_23_9
+#             run: install_name_tool -add_rpath ... (see Oracle docs)
+#
+# Why 23.x is required (not 19.x):
+#   - Instant Client 19.x does NOT support TOKEN_AUTH=OCI_INTERACTIVE
+#     (silently ignored → ORA-01017)
+#   - Instant Client 23.x supports full OCI_INTERACTIVE + oci_tokens plugin
+#   - For T01/T02 (oci_tokens plugin + ConfigFileAuthentication): IC 19.14+ works
+#   - For T08/T10 (TOKEN_AUTH=OCI_INTERACTIVE in sqlnet.ora/tnsnames.ora): IC 23.x required
+#   Source: Oracle Support SR — Oracle Client Engineering
+#
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# python-oracledb — Oracle Database driver for Python
+# ------------------------------------------------------------------------------
+# The official Oracle Python driver. Replaces cx_Oracle (deprecated).
+# Supports both THIN mode (pure Python, no Instant Client) and
+# THICK mode (native C via Oracle Instant Client).
+#
+# For this repository:
+#   THICK mode (T01/T02) — requires init_oracle_client() before any connect()
+#   THIN mode  (T03/T04) — default mode, no init_oracle_client() call
+#
+# Tested version : 3.4.2
+# Minimum version: 2.0.0 (oci_tokens plugin introduced in 1.x, stable from 2.x)
+# PyPI           : https://pypi.org/project/oracledb/
+# Documentation  : https://python-oracledb.readthedocs.io/
+#
+oracledb>=2.0.0
+
+# ------------------------------------------------------------------------------
+# oci — Oracle Cloud Infrastructure Python SDK
+# ------------------------------------------------------------------------------
+# Required by the oci_tokens plugin (THICK mode only — T01/T02).
+# The plugin imports oci internally when extra_auth_params is first processed.
+# If oci is not installed, the plugin raises ImportError at connect() time.
+#
+# What the OCI SDK does in the oci_tokens plugin:
+#   1. Reads ~/.oci/config (or file_location override) — API Key + profile
+#   2. Constructs a DatabaseClient (oci.database.DatabaseClient)
+#   3. Calls GenerateScopedAccessToken(db_token_request)
+#   4. Returns (jwt_token_string, private_key_pem_string) to python-oracledb
+#   5. python-oracledb THICK passes this to libclntsh for PoP signing
+#
+# For M2M with Instance Principal / Resource Principal:
+#   Use oci.auth.signers.InstancePrincipalsSecurityTokenSigner or
+#       oci.auth.signers.get_resource_principals_signer()
+#   instead of ConfigFileAuthentication.
+#   See: https://docs.oracle.com/en-us/iaas/tools/python/latest/sdk_behaviors/resource_principals.html
+#
+# Tested version : 2.128.0
+# Minimum version: 2.100.0 (GenerateScopedAccessToken API stability)
+# PyPI           : https://pypi.org/project/oci/
+# Documentation  : https://docs.oracle.com/en-us/iaas/tools/python/latest/
+#
+oci>=2.100.0
+
+# ------------------------------------------------------------------------------
+# NOT required — but present in some test environments
+# ------------------------------------------------------------------------------
+# cryptography — pulled transitively by oci SDK for RSA key operations.
+#                pip will install it automatically as an oci dependency.
+#
+# requests     — pulled transitively by oci SDK for HTTP calls to OCI IAM.
+#                Do NOT manually pin this — let oci manage its own version.
+#
+# pyOpenSSL    — NOT required. python-oracledb THIN uses the stdlib ssl module.
+#                python-oracledb THICK uses libclntsh's own TLS stack.
+# ------------------------------------------------------------------------------
